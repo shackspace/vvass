@@ -105,22 +105,41 @@ zocationServerActive=%d\
         return "ERROR"
 
     return(data)
-
+#parses the XML string and returns a json object
 def parseEFA(efa):
     root = ET.fromstring(efa)
     xmlDepartures = root.findall('./itdDepartureMonitorRequest/itdDepartureList/itdDeparture')
+    if xmlDepartures == None:
+        return jsonify(
+                status='error',
+                message='The EFA presented an empty itdDepartureList')
     #TODO: wenn keine departures da sind fehler schmeissen
     for departure in xmlDepartures:
         stopName = departure.attrib['stopName']
         itdServingLine = departure.find('itdServingLine')
         symbol = itdServingLine.attrib['symbol']
         destination = itdServingLine.attrib['direction']
+        itdDate = departure.find('itdDateTime/itdDate')
+        year = itdDate.attrib['year'] 
+        month = fixdate(itdDate.attrib['month'])
+        day   = fixdate(itdDate.attrib['day'])
+        itdTime = departure.find('itdDateTime/itdTime')
+        hour = fixdate(itdTime.attrib['hour'])
+        minute = fixdate(itdTime.attrib['minute'])
+        #yyyymmddHHMM
+        timestamp = year + month + day + hour + minute
         route = departure.find('itdServingLine/itdRouteDescText').text
         print(stopName)
+        print(timestamp)
         print(symbol + "  " + destination)
         print(route)
         print("----------------------------------------")
 
+#fixes single digit date characters with a leading 0
+def fixdate(date):
+    if len(date) != 2:
+        date = '0' + date
+    return date
 
 
 if __name__ == "__main__":
