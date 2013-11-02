@@ -3,8 +3,10 @@
 
 from flask import Flask, abort, request, redirect, jsonify
 import simplejson
-import os
 from urllib.request import urlopen
+import time
+from xml.dom import minidom
+
 
 app = Flask(__name__)
 
@@ -27,6 +29,12 @@ def stationId(stationId=None):
             message="the station ID needs to be a 7 digit integer"
             )
     efa = get_EFA_from_VVS(stationId)
+    if efa == "ERROR":
+        return jsonify(
+            status="error",
+            message="Couldn't connect to the EFA, something is broken."
+            )
+    
     return "aww yiss"
 
 
@@ -49,11 +57,11 @@ def get_EFA_from_VVS(stationId):
     name_dm=stationId
     mode='direct'
     dmLineSelectionAll=1
-    itdDateYear=2012
-    itdDateMonth=10
-    itdDateDay=12
-    itdTimeHour=19
-    itdTimeMinute=26
+    itdDateYear=int(time.strftime('%y'))
+    itdDateMonth=int(time.strftime('%m'))
+    itdDateDay=int(time.strftime('%d'))
+    itdTimeHour=int(time.strftime('%H'))
+    itdTimeMinute=int(time.strftime('%M'))
     useRealtime=1
 
     efa = urlopen('http://www2.vvs.de/vvs/widget/XML_DM_REQUEST?\
@@ -79,8 +87,10 @@ def get_EFA_from_VVS(stationId):
             &useRealtime=%d' % (zocationServerActive, lsShowTrainsExplicit,stateless,language,SpEncId,anySigWhenPerfectNoOtherMatches,limit,depArr,type_dm, anyObjFilter_dm, deleteAssignedStops, name_dm, mode, dmLineSelectionAll, itdDateYear, itdDateMonth, itdDateDay, itdTimeHour, itdTimeMinute, useRealtime))
     print('requested URL %s:' % efa.geturl())
     print('return code: %d' % efa.getcode())
-    print(efa.read())
-    return "foo" 
+    if efa.code != 200:
+        return "ERROR"
+    else:
+        return efa
 
 if __name__ == "__main__":
     app.debug = True
