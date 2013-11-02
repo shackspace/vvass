@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #-*-coding: utf-8 -*-
 
-from flask import Flask, abort, request, redirect, jsonify
+from flask import Flask, abort, request, redirect, jsonify, Response 
 import simplejson
 import http.cookiejar, urllib.request
 #from urllib.request import urlopen
@@ -37,8 +37,7 @@ def stationId(stationId=None):
             )
 
     parsed = parseEFA(efa)
-    
-    return "aww yiss"
+    return parsed
 
 
 
@@ -113,12 +112,18 @@ def parseEFA(efa):
         return jsonify(
                 status='error',
                 message='The EFA presented an empty itdDepartureList')
-    #TODO: wenn keine departures da sind fehler schmeissen
+
+    departures = []
+
     for departure in xmlDepartures:
         stopName = departure.attrib['stopName']
+        print(type(stopName))
+        stopName = stopName.encode(encoding='utf-8')
+        stopName = str(stopName, 'utf-8')
+        print(type(stopName))
         itdServingLine = departure.find('itdServingLine')
         symbol = itdServingLine.attrib['symbol']
-        destination = itdServingLine.attrib['direction']
+        direction = itdServingLine.attrib['direction']
         itdDate = departure.find('itdDateTime/itdDate')
         year = itdDate.attrib['year'] 
         month = fixdate(itdDate.attrib['month'])
@@ -127,13 +132,24 @@ def parseEFA(efa):
         hour = fixdate(itdTime.attrib['hour'])
         minute = fixdate(itdTime.attrib['minute'])
         #yyyymmddHHMM
-        timestamp = year + month + day + hour + minute
+        departureTime = year + month + day + hour + minute
         route = departure.find('itdServingLine/itdRouteDescText').text
+
+
+        ret = {'stopName' : stopName, 'symbol' : symbol, 'direction' : direction, 'departureTime' : departureTime, 'route' : route}
+        departures.append(ret) 
+
         print(stopName)
-        print(timestamp)
-        print(symbol + "  " + destination)
+        print(departureTime)
+        print(symbol + "  " + direction)
         print(route)
         print("----------------------------------------")
+    
+    response = jsonify(status='success', departures=departures) 
+    response.mimetype='application/json; charset=utf-8'
+    return response
+
+
 
 #fixes single digit date characters with a leading 0
 def fixdate(date):
