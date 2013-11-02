@@ -5,8 +5,7 @@ from flask import Flask, abort, request, redirect, jsonify
 import simplejson
 from urllib.request import urlopen
 import time
-from xml.dom import minidom
-
+import xml.etree.ElementTree as ET
 
 app = Flask(__name__)
 
@@ -29,11 +28,14 @@ def stationId(stationId=None):
             message="the station ID needs to be a 7 digit integer"
             )
     efa = get_EFA_from_VVS(stationId)
+
     if efa == "ERROR":
         return jsonify(
             status="error",
             message="Couldn't connect to the EFA, something is broken."
             )
+
+    parsed = parseEFA(efa)
     
     return "aww yiss"
 
@@ -60,7 +62,7 @@ def get_EFA_from_VVS(stationId):
     itdDateYear=int(time.strftime('%y'))
     itdDateMonth=int(time.strftime('%m'))
     itdDateDay=int(time.strftime('%d'))
-    itdTimeHour=int(time.strftime('%H'))
+    itdTimeHour=12 #int(time.strftime('%H'))
     itdTimeMinute=int(time.strftime('%M'))
     useRealtime=1
 
@@ -85,13 +87,22 @@ def get_EFA_from_VVS(stationId):
             &itdTimeHour=%d\
             &itdTimeMinute=%d\
             &useRealtime=%d' % (zocationServerActive, lsShowTrainsExplicit,stateless,language,SpEncId,anySigWhenPerfectNoOtherMatches,limit,depArr,type_dm, anyObjFilter_dm, deleteAssignedStops, name_dm, mode, dmLineSelectionAll, itdDateYear, itdDateMonth, itdDateDay, itdTimeHour, itdTimeMinute, useRealtime))
-    print('requested URL %s:' % efa.geturl())
-    print('return code: %d' % efa.getcode())
+    #print('requested URL %s:' % efa.geturl())
+    #print('return code: %d' % efa.getcode())
     if efa.code != 200:
         return "ERROR"
     else:
-        return efa
+        print(efa.geturl())
+        ret = efa.read()
+        print(ret)
+        return(ret) 
 
+def parseEFA(efa):
+
+    root = ET.fromstring(efa)
+    drecksding = root.findall('./itdDepartureMonitorRequest/')
+    for element in drecksding:
+        print(element)
 if __name__ == "__main__":
     app.debug = True
     app.run(host='0.0.0.0', port=8080)
