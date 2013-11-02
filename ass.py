@@ -2,6 +2,7 @@
 #-*-coding: utf-8 -*-
 
 from flask import Flask, abort, request, redirect, jsonify, Response 
+import json
 import simplejson
 import http.cookiejar, urllib.request
 #from urllib.request import urlopen
@@ -37,7 +38,8 @@ def stationId(stationId=None):
             )
 
     parsed = parseEFA(efa)
-    return parsed
+    
+    return Response(parsed, content_type='application/json; charset=utf-8')
 
 
 
@@ -92,6 +94,7 @@ zocationServerActive=%d\
     cj = http.cookiejar.CookieJar()
     opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
     opener.addheaders = [('User-agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0')]
+    opener.addheaders = [('Accept-Charset', 'utf-8')]
     efa = opener.open(url)
     data = efa.read()
     #debugging informaton
@@ -117,10 +120,6 @@ def parseEFA(efa):
 
     for departure in xmlDepartures:
         stopName = departure.attrib['stopName']
-        print(type(stopName))
-        stopName = stopName.encode(encoding='utf-8')
-        stopName = str(stopName, 'utf-8')
-        print(type(stopName))
         itdServingLine = departure.find('itdServingLine')
         symbol = itdServingLine.attrib['symbol']
         direction = itdServingLine.attrib['direction']
@@ -144,9 +143,8 @@ def parseEFA(efa):
         print(symbol + "  " + direction)
         print(route)
         print("----------------------------------------")
-    
-    response = jsonify(status='success', departures=departures) 
-    response.mimetype='application/json; charset=utf-8'
+    dataset = { 'status':'success', 'departures' : departures} 
+    response = json.dumps(dataset, indent=4,separators=(',', ': '), ensure_ascii=False)
     return response
 
 
