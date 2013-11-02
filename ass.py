@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#-*-coding:utf-8
+#-*-coding: utf-8 -*-
 
 from flask import Flask, abort, request, redirect, jsonify
 import simplejson
@@ -63,7 +63,7 @@ def get_EFA_from_VVS(stationId):
     itdDateYear=int(time.strftime('%y'))
     itdDateMonth=int(time.strftime('%m'))
     itdDateDay=int(time.strftime('%d'))
-    itdTimeHour=12 #int(time.strftime('%H'))
+    itdTimeHour=int(time.strftime('%H'))
     itdTimeMinute=int(time.strftime('%M'))
     useRealtime=1
 
@@ -94,7 +94,7 @@ zocationServerActive=%d\
     opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
     opener.addheaders = [('User-agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0')]
     efa = opener.open(url)
-    data = efa.read().decode('ISO-8859-1')
+    data = efa.read()
     #debugging informaton
     code = efa.getcode()
     efa.close()
@@ -107,11 +107,21 @@ zocationServerActive=%d\
     return(data)
 
 def parseEFA(efa):
-
     root = ET.fromstring(efa)
-    departures = root.findall('./itdDepartureMonitorRequest/itdDepartureList/itdDeparture')
-    for departure in departures:
-        print(departure)
+    xmlDepartures = root.findall('./itdDepartureMonitorRequest/itdDepartureList/itdDeparture')
+    #TODO: wenn keine departures da sind fehler schmeissen
+    for departure in xmlDepartures:
+        stopName = departure.attrib['stopName']
+        symbol = departure.find('itdServingLine').attrib['symbol']
+        destination = departure.find('itdServingLine').attrib['direction']
+        route = departure.find('itdServingLine/itdRouteDescText').text
+        print(stopName)
+        print(symbol + "  " + destination)
+        print(route)
+        print("----------------------------------------")
+
+
+
 if __name__ == "__main__":
     app.debug = True
     app.run(host='0.0.0.0', port=8080)
