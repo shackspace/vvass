@@ -112,8 +112,9 @@ def parseEFA(efa):
     #TODO: wenn keine departures da sind fehler schmeissen
     for departure in xmlDepartures:
         stopName = departure.attrib['stopName']
-        symbol = departure.find('itdServingLine').attrib['symbol']
-        destination = departure.find('itdServingLine').attrib['direction']
+        itdServingLine = departure.find('itdServingLine')
+        symbol = itdServingLine.attrib['symbol']
+        destination = itdServingLine.attrib['direction']
         route = departure.find('itdServingLine/itdRouteDescText').text
         print(stopName)
         print(symbol + "  " + destination)
