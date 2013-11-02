@@ -3,7 +3,8 @@
 
 from flask import Flask, abort, request, redirect, jsonify
 import simplejson
-from urllib.request import urlopen
+import http.cookiejar, urllib.request
+#from urllib.request import urlopen
 import time
 import xml.etree.ElementTree as ET
 
@@ -66,43 +67,51 @@ def get_EFA_from_VVS(stationId):
     itdTimeMinute=int(time.strftime('%M'))
     useRealtime=1
 
-    efa = urlopen('http://www2.vvs.de/vvs/widget/XML_DM_REQUEST?\
-            zocationServerActive=%d\
-            &lsShowTrainsExplicit%d\
-            &stateless=%d\
-            &language=%s\
-            &SpEncId=%d\
-            &anySigWhenPerfectNoOtherMatches=%d\
-            &limit=%d\
-            &depArr=%s\
-            &type_dm=%s\
-            &anyObjFilter_dm=%d\
-            &deleteAssignedStops=%d\
-            &name_dm=%s\
-            &mode=%s\
-            &dmLineSelectionAll=%d\
-            &itdDateYear=%d\
-            &itdDateMonth=%d\
-            &itdDateDay=%d\
-            &itdTimeHour=%d\
-            &itdTimeMinute=%d\
-            &useRealtime=%d' % (zocationServerActive, lsShowTrainsExplicit,stateless,language,SpEncId,anySigWhenPerfectNoOtherMatches,limit,depArr,type_dm, anyObjFilter_dm, deleteAssignedStops, name_dm, mode, dmLineSelectionAll, itdDateYear, itdDateMonth, itdDateDay, itdTimeHour, itdTimeMinute, useRealtime))
-    #print('requested URL %s:' % efa.geturl())
-    #print('return code: %d' % efa.getcode())
-    if efa.code != 200:
+    url = ('http://www2.vvs.de/vvs/widget/XML_DM_REQUEST?\
+zocationServerActive=%d\
+&lsShowTrainsExplicit%d\
+&stateless=%d\
+&language=%s\
+&SpEncId=%d\
+&anySigWhenPerfectNoOtherMatches=%d\
+&limit=%d\
+&depArr=%s\
+&type_dm=%s\
+&anyObjFilter_dm=%d\
+&deleteAssignedStops=%d\
+&name_dm=%s\
+&mode=%s\
+&dmLineSelectionAll=%d\
+&itdDateYear=%d\
+&itdDateMonth=%d\
+&itdDateDay=%d\
+&itdTimeHour=%d\
+&itdTimeMinute=%d\
+&useRealtime=%d' % (zocationServerActive, lsShowTrainsExplicit,stateless,language,SpEncId,anySigWhenPerfectNoOtherMatches,limit,depArr,type_dm, anyObjFilter_dm, deleteAssignedStops, name_dm, mode, dmLineSelectionAll, itdDateYear, itdDateMonth, itdDateDay, itdTimeHour, itdTimeMinute, useRealtime))
+
+    
+    cj = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+    opener.addheaders = [('User-agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0')]
+    efa = opener.open(url)
+    data = efa.read().decode('ISO-8859-1')
+    #debugging informaton
+    code = efa.getcode()
+    efa.close()
+    
+    print('requested URL %s:' % url)
+    print('return code: %d' % code) 
+    if code != 200:
         return "ERROR"
-    else:
-        print(efa.geturl())
-        ret = efa.read()
-        print(ret)
-        return(ret) 
+
+    return(data)
 
 def parseEFA(efa):
 
     root = ET.fromstring(efa)
-    drecksding = root.findall('./itdDepartureMonitorRequest/')
-    for element in drecksding:
-        print(element)
+    departures = root.findall('./itdDepartureMonitorRequest/itdDepartureList/itdDeparture')
+    for departure in departures:
+        print(departure)
 if __name__ == "__main__":
     app.debug = True
     app.run(host='0.0.0.0', port=8080)
