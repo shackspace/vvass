@@ -38,8 +38,10 @@ def stationId(stationId=None):
             )
 
     parsed = parseEFA(efa)
-    
-    return Response(parsed, content_type='application/json; charset=utf-8')
+    if isinstance(parsed,Response):
+        return parsed
+    else:
+        return Response(parsed, content_type='application/json; charset=utf-8')
 
 
 
@@ -108,11 +110,11 @@ zocationServerActive=%d\
 def parseEFA(efa):
     root = ET.fromstring(efa)
     xmlDepartures = root.findall('./itdDepartureMonitorRequest/itdDepartureList/itdDeparture')
-    if xmlDepartures == None:
+    if len(xmlDepartures) == 0:
         return jsonify(
                 status='error',
                 message='The EFA presented an empty itdDepartureList')
-
+        
     departures = []
 
     for departure in xmlDepartures:
