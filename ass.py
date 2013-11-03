@@ -8,7 +8,6 @@ import http.cookiejar
 import urllib.request
 import time
 import xml.etree.ElementTree as ET
-import urllib.request
 
 app = Flask(__name__)
 
@@ -83,7 +82,7 @@ def get_EFA_from_VVS(stationId):
     url += '&depArr=%s' % depArr
     url += '&type_dm=%s' % type_dm
     url += '&anyObjFilter_dm=%d' % anyObjFilter_dm
-    url += '&deleteAssignedStops=%d' % deleteAssignedStrops
+    url += '&deleteAssignedStops=%d' % deleteAssignedStops
     url += '&name_dm=%s' % name_dm
     url += '&mode=%s' % mode
     url += '&dmLineSelectionAll=%d' % dmLineSelectionAll
@@ -95,7 +94,8 @@ def get_EFA_from_VVS(stationId):
     url += '&useRealtime=%d' % useRealtime
 
     cj = http.cookiejar.CookieJar()
-    opener = build_opener(urllib.request.HTTPCookieProcessor(cj))
+    opener = urllib.request.build_opener(urllib.request.
+                                         HTTPCookieProcessor(cj))
     opener.addheaders = [('User-agent',
                           'Mozilla/5.0 (X11; Linux x86_64; rv:22.0)'
                           'Gecko/20100101 Firefox/22.0')]
