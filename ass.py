@@ -44,7 +44,6 @@ def stationId(stationId=None):
 
 
 def get_EFA_from_VVS(stationId):
-    print('station ID: %d' % stationId)
     ##parameters needed for EFA
     zocationServerActive=1
     lsShowTrainsExplicit=1
@@ -101,8 +100,6 @@ zocationServerActive=%d\
     code = efa.getcode()
     efa.close()
     
-    print('requested URL %s:' % url)
-    print('return code: %d' % code) 
     if code != 200:
         return "ERROR"
 
@@ -138,12 +135,8 @@ def parseEFA(efa):
         ret = {'stopName' : stopName, 'symbol' : symbol, 'direction' : direction, 'departureTime' : departureTime, 'route' : route}
         departures.append(ret) 
 
-        print(stopName)
-        print(departureTime)
-        print(symbol + "  " + direction)
-        print(route)
-        print("----------------------------------------")
-    dataset = { 'status':'success', 'departures' : departures} 
+    requestTime = timestr = time.strftime('%Y%m%d%H%M')
+    dataset = { 'status':'success', 'requestTime' : requestTime, 'departures' : departures} 
     response = json.dumps(dataset, indent=4,separators=(',', ': '), ensure_ascii=False)
     return response
 
