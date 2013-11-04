@@ -120,7 +120,7 @@ def parseEFA(efa):
     if len(xmlDepartures) == 0:
         return jsonify(
             status='error',
-            message='The EFA presented an empty itdDepartureList')
+            message='The EFA presented an empty itdDepartureList. Reason therefore might be an unknown station ID.')
 
     departures = []
 
