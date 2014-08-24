@@ -44,9 +44,9 @@ def stationId(stationId=None):
         response = parsed
         response.headers.add('Access-Control-Allow-Origin', '*')
     else:
-		response = Response(parsed, content_type='application/json; charset=utf-8')
-		response.headers.add('Access-Control-Allow-Origin', '*')
-		
+        response = Response(parsed, content_type='application/json; charset=utf-8')
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        
     return response
 
 
