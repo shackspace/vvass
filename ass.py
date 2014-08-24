@@ -39,10 +39,15 @@ def stationId(stationId=None):
             )
 
     parsed = parseEFA(efa)
+    
     if isinstance(parsed, Response):
-        return parsed
+        response = parsed
+        response.headers.add('Access-Control-Allow-Origin', '*')
     else:
-        return Response(parsed, content_type='application/json; charset=utf-8')
+		response = Response(parsed, content_type='application/json; charset=utf-8')
+		response.headers.add('Access-Control-Allow-Origin', '*')
+		
+    return response
 
 
 def get_EFA_from_VVS(stationId):
